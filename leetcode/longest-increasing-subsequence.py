@@ -25,7 +25,8 @@ class Solution(object):
                 # is larger than the number preceeding it
                 if numx > numy:
                     
-                    # only update the table at idx
+                    # only update the table at idx if a subsequence ending at idy can result
+                    # in a longer subsequence at idx
                     if table[idx] <= table[idy]:
                         table[idx] += 1
        
@@ -34,4 +35,4 @@ class Solution(object):
         return longestSubSeq
                         
                 
-        
+    
