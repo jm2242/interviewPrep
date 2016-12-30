@@ -4,9 +4,9 @@ import unittest
 # CONSTANTS
 MAX_INT = sys.maxint
 
-class SegmentNode(object):
-	def __init__(self, val):
-		self.val = val
+# class SegmentNode(object):
+# 	def __init__(self, val):
+# 		self.val = val
 
 
 # Abstract class for a SegmentTree
@@ -34,6 +34,27 @@ class SegmentTree(object):
 	'''
 	__metaclass__ = ABCMeta
 
+	# requires a list of number nums
+	# defaults to None for tree padding, unless otherwise specified
+	# padding is to make tree full
+	def __init__(self, nums, padding=None):
+
+		# original numbers
+		self.nums = nums
+
+		# null node value
+		# what to retun if the segment is outside the range 
+		if padding is None:
+			self.padding = 0
+		else:
+			self.padding = padding
+
+		# initialize a tree to the highest nearest power of two
+		self.tree = (2*self.next_greater_power_of_2(len(nums)) - 1) * [padding]
+		print "initialize tree of length {0}".format(len(self.tree))
+
+		# construct the tree
+		self.build_tree(0, 0, len(self.nums)-1)
 
 	# wizardry to return the next power of two
 	# returns x if x is a power of two
@@ -59,40 +80,10 @@ class SegmentTree(object):
 		# merge step
 		self.tree[treeIndex] = self.merge(self.tree[2*treeIndex+1], self.tree[2*treeIndex+2])
 
-	# ABSTRACT METHODS
-
-	@abstractmethod
-	def range_query(self, lower, upper, qLow, qHigh):
-		# method to query the tree 
-		pass
-
-	@abstractmethod
-	def merge(self, leftChild, rightChild):
-		# method to mergee the result of leftChild and rightChild as the 
-		# result for the parent
-		pass
-
-
-class MinElementTree(SegmentTree):
-	def __init__(self, nums):
-
-		# original numbers
-		self.nums = nums
-
-		# initialize a tree to the highest nearest power of two
-		self.tree = (2*self.next_greater_power_of_2(len(nums)) - 1) * [MAX_INT]
-		"initialize tree of length {0}".format(self.tree)
-
-		# construct the tree
-		self.build_tree(0, 0, len(self.nums)-1)
-
-	def merge(self, leftChild, rightChild):
-		return min(leftChild, rightChild)
-
 	''' 3 cases to consider
-		- total overlap
-		- no overlap
-		- partial overlap
+	- total overlap
+	- no overlap
+	- partial overlap
 
 	takes in a query range qLow and qhigh, lower, upper and pos ranges
 	for the tree
@@ -105,13 +96,46 @@ class MinElementTree(SegmentTree):
 			raise Exception("qLow cannot be greater than qHigh")
 		if high is None:
 			high = len(self.nums)-1
+
 		# total overlap scenario
 		if qLow <= low and qHigh >= high:
 			return self.tree[pos]
 
 		# no overlap:
 		if high < qLow or low > qHigh:
-			return MAX_INT
+			return self.padding
+
+		'''
+		partial overlap scanrio
+		return the merged result as defined by the subclass depending
+		on tree type
+		'''
+		return self.range_merge(qLow, qHigh, pos, low, high)
+	# ABSTRACT METHODS
+
+	@abstractmethod
+	def range_merge(self, qLow, qHigh, pos, low, high):
+		# method to merge result of left child and right child when merging
+		# a query that checks both branches
+		pass
+
+	@abstractmethod
+	def merge(self, leftChild, rightChild):
+		# method to mergee the result of leftChild and rightChild as the 
+		# result for the parent
+		pass
+
+
+class MinElementTree(SegmentTree):
+	def __init__(self, nums, padding=MAX_INT):
+		print "Creating a Min Tree"
+		super(MinElementTree, self).__init__(nums, padding)
+
+
+	def merge(self, leftChild, rightChild):
+		return min(leftChild, rightChild)
+
+	def range_merge(self, qLow, qHigh, pos, low, high):
 
 		# partial overlap - search both branches
 		# split into two branches and prevent overflow for positive integers
@@ -121,9 +145,48 @@ class MinElementTree(SegmentTree):
 
 
 class SumElementTree(SegmentTree):
-	pass
+	def __init__(self, nums):
+		print "Creating a sum Tree"
+		super(SumElementTree, self).__init__(nums)
+
+	def merge(self, leftChild, rightChild):
+		return leftChild + rightChild
+
+	def range_merge(self, qLow, qHigh, pos, low, high):
+		# partial overlap - search both branches
+		# split into two branches and prevent overflow for positive integers
+		mid = low + (high - low) / 2
+
+		# traverse left child if the query high range is at most mid
+		# in other words, don't recurse down right child
+		if qHigh <= mid:
+			return self.range_query(qLow,qHigh, 2*pos+1, low, mid)
+
+		# traverse right child if query low range is greater than mid
+		# in other words, don't recurse down left child
+		elif qLow > mid:
+			return self.range_query(qLow, qHigh, 2*pos+2, mid+1, high)
+
+		else:
+			left =  self.range_query(qLow, qHigh, 2*pos+1, low, mid) 
+			right = self.range_query(qLow, qHigh, 2*pos+2, mid+1, high)
+			return left + right
 
 
+# simple way to use the cummulative sum from 0 to n-1 to compute 
+# sum in interval
+def simple_sum_range(i,j,nums):
+	cumulative_sum = [0]
+	accum = 0
+	for num in nums:
+		accum += num
+		cumulative_sum.append(accum)
+	return cumulative_sum[j+1] - cumulative_sum[i]
+
+
+
+
+# ---- TESTING --------#
 
 def min_tree_tests():
 	nums = [-1,2,4,0]
@@ -144,7 +207,24 @@ def min_tree_tests():
 
 def sum_tree_tests():
 	nums = [-1,2,4,0]
-	#sum_tree = SumElementTree(nums)
+	sum_tree = SumElementTree(nums)
+	assert sum_tree.range_query(0,3) == 5
+	assert sum_tree.range_query(0,0) == -1
+	assert sum_tree.range_query(3,3) == 0
+	assert sum_tree.range_query(0,2) == 5
+
+	nums = [1,4,8,11,15,22]
+	sum_tree = SumElementTree(nums)
+	assert sum_tree.range_query(1,5) == 60
+	assert simple_sum_range(1,5,nums) == 60
+
+	assert sum_tree.range_query(5,5) == 22
+	assert simple_sum_range(5,5,nums) == 22
+
+	assert sum_tree.range_query(4,5) == 37
+	assert simple_sum_range(4,5,nums) == 37
+	
+
 
 
 
@@ -153,7 +233,10 @@ def sum_tree_tests():
 def main():
 	
 	# run some tests for min
-	min_tree_tests()
+	#min_tree_tests()
+
+	# run tests for sum tree
+	sum_tree_tests()
 
 	
 	
