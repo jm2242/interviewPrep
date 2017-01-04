@@ -1,6 +1,6 @@
 import heapq
 '''
-this solution takes much longer because creating the graph from the entire dictionary is very expensive
+this solution takes much longer because creating the graph from the entire word set is very expensive
 If we needed to run dijkstras on the same graph many times, and potentially with different starting 
 words, than this approach would make sense. In the alternate solution, we're only generating 26*wordLength combinations
 in every loop itteration, and even with the large test case, we only visit about 2800 nodes. The graph itself has a lot 
