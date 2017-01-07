@@ -2,32 +2,17 @@ class Solution:
     # @param A : tuple of integers
     # @param B : integer
     # @return an integer
-    def findCount(self, A, B):
-        return self.binary_search(list(A), B)
+    
      
-     
-    def countOccurences(self, mid, nums, length, elem):
-        accum = 1
-        
-        # count down from mid first 
-        i = mid - 1
-        while i >=0 and nums[i] == elem:
-            accum += 1
-            i -= 1
-        
 
-        # count up from mid
-        i = mid + 1
-        while i < length and nums[i] == elem:
-            accum += 1
-            i += 1
-
-        return accum    
-       
-    def binary_search(self, nums, elem, length=None):
+    def binary_search(self, nums, elem, length=None, kind="base"):
         low = 0
-        
-        
+    
+        result = None
+        kind = kind.lower()
+        if kind not in ("base", "first", "last"):
+            raise TypeError("invalid binary search type")
+    
         if length is None:
             length = len(nums)
             high = length - 1
@@ -40,14 +25,38 @@ class Solution:
             # get the middle 
             mid = low + (high - low) / 2
             if nums[mid] == elem:
-                return self.countOccurences(mid,nums, length, elem)
+    
+                # if normal binary search, just return the first index found
+                if kind == "base":
+                    return mid
+                elif kind == "first":
+                    result = mid
+                    high = mid - 1
+                elif kind == "last":
+                    result = mid
+                    low = mid + 1
             elif nums[mid] > elem:
                 high = mid - 1
             elif nums[mid] < elem:
                 low = mid + 1
-        
+    
         else:
+            return result
+    
+    def occurrences(self, nums, elem):
+        length = len(nums)
+        last = self.binary_search(nums, elem, length, "last")
+        first = self.binary_search(nums, elem, length, "first")
+        if last is None:
             return 0
+        return last - first + 1
+    def findCount(self, A, B):
+        return self.occurrences(A,B)
+     
+    
+    
+
+
 
 def main():
     sol = Solution()
