@@ -1,5 +1,6 @@
 class Solution(object):
     def containsNearbyAlmostDuplicate(self, nums, k, t):
+        #print "k is {0}".format(k)
         """
         :type nums: List[int]
         :type k: int
@@ -11,24 +12,67 @@ class Solution(object):
             
         if len(nums) == 1:
             return False
-        
-        for idx, num in enumerate(nums):
             
-            # get the index/indeces to check
-            indeces = self.indexRange(idx, k, len(nums))
-            for ind in indeces:
-                if abs(nums[ind] - num) <= t:
-                    return True
+        # approach -> sort array, group into tuples of (num, index)
+        # tuple index 0  -> num
+        # tuple index 1 -> index in original num list
+        nums = [(x, idx) for idx, x in enumerate(nums)]
+        nums.sort()
         
+    
+        # advance two pointers, i for first tuple, j for second tuple
+        i = 0
+        j = 1
+        while i < len(nums) - 1:
+            
+            # if the difference between the values is greater than t,
+            # no point in comparing with tuple at i anymore
+            if abs(nums[i][0] - nums[j][0]) > t:
+                i += 1
+                j = i + 1
+            else:
+                if abs(nums[i][1] - nums[j][1]) <= k:
+                    return True
+                    
+                # advanc j if it isn't in last position
+                if j < len(nums) - 1:
+                    j += 1
+                    
+                # if j is at last position, increment i & reset j
+                else:
+                    i += 1
+                    j = i + 1
         else:
             return False
-                
         
-    # return the bottom index to check based on i
-    def indexRange(self, i, k, numLength):
-        return [ i - x for x in range(k,0,-1) if (i-x) >=0] + [i + x for x in range(1, k+1) if (i+x) < numLength]   
 
             
+            
+            
+            
+            
+            
+        
+    #     for idx, num in enumerate(nums):
+            
+    #         # get the index/indeces to check
+    #         indeces = self.indexRange(idx, k, len(nums))
+    #         for ind in indeces:
+    #             if abs(nums[ind] - num) <= t:
+    #                 return True
+        
+    #     else:
+    #         return False
+                
+        
+    # # return the bottom index to check based on i
+    # def indexRange(self, i, k, numLength):
+    #     return [ i - x for x in range(k,0,-1) if (i-x) >=0] + [i + x for x in range(1, k+1) if (i+x) < numLength]   
+
+            
+            
+        
+             
    
 
 def main():
