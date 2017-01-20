@@ -18,7 +18,17 @@
 ### Implementation
 
 ~~~ python
-def yolo():
-	
-	self.
+class Singleton(object):
+	def __new__(cls):
+		if not hasattr(cls, 'instance'):
+			cls.instance = super(Singleton, cls).__new__(cls)
+		return cls.instance
+
+------
+s = Singleton()
+
+s1 = Singleton()	
 ~~~
+
+- `__new__` is Python's special method to instantiate object
+	- 	we ovverride to control the object creation
