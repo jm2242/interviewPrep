@@ -33,6 +33,19 @@ class Solution(object):
             # check if max so far
             longestSubSeq = max(longestSubSeq, table[idx])
         return longestSubSeq
+
+    # another way based on video, similar concept but more concise
+    # def longestIncreasingSubsequence(self, nums):
+
+    #     # define a list ls which is the length of the longest increasing subsequence
+    #     # which includes element nums[i] as last element
+    #     ls = len(nums) * [1]
+
+    #     for idx, num in enumerate(nums):
+
+            # need to find the max (ls[j]) such that j < i and nums[i] > nums[j]
+
+
                         
                 
     

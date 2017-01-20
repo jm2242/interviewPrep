@@ -23,7 +23,7 @@ class Solution(object):
                 break
     
         return maxLength
-                
+            
             
 if __name__ == "__main__":
     sol = Solution()
