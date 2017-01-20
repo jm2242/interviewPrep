@@ -264,10 +264,109 @@ hc2 = HealthCheck()
 
 
 ~~~ python
+# ABCMeta is Python's special metaclass to make a class abstract
+from abc import ABCMeta, abstractmethod
 
+class Animal(metaclass = ABCMeta):
+	@abstractmethod
+	def do_say(self):
+		pass
+
+class Dog(Animal):
+	def do_say(self):
+		print("WOOOF")
+		
+class Cat(Animal):
+	def do_say(self):
+		print( "Meow")
+		
+# forest factory defined
+class ForestFactory(object):
+	def make_sound(self, object_type):
+		return eval(object_type)().do_say()
+		
+# client code
+if __name__ == "__main__":
+	ff = ForestFactory()
+	animal = "Cat"
+	ff.make_sound(animal) # outputs "Meow"		
+	
 ~~~ 
 
+## Factory Method pattern
 
+### Overview
+- fatory method reation is through inheritance, not instantiation
+- define an interface to make objects, but we defer responsibility to create object to subclass
+
+
+![Factory Method UML](./factoryMethod.png)
+
+
+### Implementation
+
+We'd like to create profiles of different social networks. Want to have the right sections depending on the network.
+
+~~~ python
+from abc import ABCMeta, abstractmethod
+
+# the Product Interface
+class Section(metaclass=ABCMeta):
+	@abstractmethod
+	def desribe(self):
+		pass
+class PersonalSection(Section):   def describe(self):       print("Personal Section")
+   class AlbumSection(Section):   def describe(self):       print("Album Section")
+   class PatentSection(Section):   def describe(self):       print("Patent Section")
+   class PublicationSection(Section):   def describe(self):       print("Publication Section")	
+   
+   
+# the Creator abstract class  
+# this abstract class provides a factory method createProfile, which should be 
+# implemented in by ConcreteClass to actually create the profile with appropriate sections
+# Profile is not aware of what sections each profile should have, we let the subclass decide  
+# class Profile(metaclass=ABCMeta):
+	def __init__(self):
+		self.sections = []
+		self.createProfile()
+	
+	@abstractmethod
+	def createProfile(self):
+		pass
+		
+	def getSections(self):
+		return self.sections
+		
+	def addSection(self, section):
+		self.sections.append(section)
+
+
+# we also create 2 ConcreteCreator classes
+class Linkedin(Profile):
+	def createProfile(self):
+		self.addsections(PersonalSection())
+		self.addSections(PatentSection())
+		self.addSections(PublicationSection())
+
+class facebook(Profile):
+	def createProfile(self):
+		self.addsections(PersonalSection())
+		self.addsections(AlbumSection())
+
+# client code that determines which Creator lass to instantiate
+if __name__ == "__main__":
+	profile_type = eval("Linkedin")
+	profile = profile_type()
+	
+~~~
+
+### Advantages
+- brings a lot of flexibility and makes code generic
+- loose coupling, code that creates the object is separate from the code that uses it. client doesn't need to worry about what argument it o pass and which class to instantiate. 
+
+
+## Abstract Factory Pattern
+Main objective is to provide an interface to create families of related objects without specifying the concrete class. 	
 
 
 
